@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KET词汇练习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 顶部设置区样式 */
+        .settings {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .settings h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .select-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            min-width: 150px;
+        }
+
+        /* 游戏选择区 - 顺序：拼写→英译中→中译英→吊小人 */
+        .game-selection {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-selection h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .game-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-btn {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            min-width: 120px;
+        }
+
+        .game-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 游戏容器样式 */
+        .game-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            position: relative;
+        }
+
+        .game-active {
+            display: block;
+        }
+
+        /* 通用游戏样式 */
+        .game-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .status {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .hint-text {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .success-hint {
+            color: #27ae60;
+        }
+        .error-hint {
+            color: #e74c3c;
+        }
+        .normal-hint {
+            color: #2c3e50;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #2ecc71;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .game-content {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .key {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .key.correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .key.incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .key.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* 吊小人样式 - 10次机会，成功绿色/失败红色倒地 */
+        .hangman-figure {
+            height: 280px;
+            border-bottom: 4px solid #333;
+            position: relative;
+            margin: 20px auto;
+            width: 200px;
+        }
+
+        .hangman-part {
+            display: none;
+            position: absolute;
+            background-color: #333;
+            transition: all 0.5s ease;
+        }
+
+        .stand {
+            width: 4px;
+            height: 100%;
+            left: 0;
+            bottom: 0;
+        }
+
+        .beam {
+            width: 120px;
+            height: 4px;
+            top: 20px;
+            left: 0;
+        }
+
+        .rope {
+            width: 4px;
+            height: 40px;
+            top: 20px;
+            left: 120px;
+        }
+
+        .head {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 4px solid #333;
+            top: 60px;
+            left: 95px;
+            background-color: transparent;
+        }
+
+        .body {
+            width: 4px;
+            height: 80px;
+            top: 110px;
+            left: 120px;
+        }
+
+        .arm-left {
+            width: 60px;
+            height: 4px;
+            top: 130px;
+            left: 60px;
+            transform: rotate(30deg);
+        }
+
+        .arm-right {
+            width: 60px;
+            height: 4px;
+            top: 130px;
+            left: 120px;
+            transform: rotate(-30deg);
+        }
+
+        .leg-left {
+            width: 60px;
+            height: 4px;
+            top: 190px;
+            left: 60px;
+            transform: rotate(60deg);
+        }
+
+        .leg-right {
+            width: 60px;
+            height: 4px;
+            top: 190px;
+            left: 120px;
+            transform: rotate(-60deg);
+        }
+
+        /* 小人颜色状态 */
+        .hangman-success .hangman-part {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+        .hangman-fail .hangman-part {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+        /* 失败倒地效果 */
+        .hangman-fail .stand {
+            transform: rotate(45deg);
+            left: 50px;
+        }
+        .hangman-fail .beam {
+            transform: rotate(45deg);
+            top: 80px;
+        }
+        .hangman-fail .rope {
+            display: none;
+        }
+        .hangman-fail .head {
+            top: 150px;
+            left: 80px;
+        }
+        .hangman-fail .body {
+            top: 200px;
+            left: 100px;
+        }
+        .hangman-fail .arm-left, .hangman-fail .arm-right,
+        .hangman-fail .leg-left, .hangman-fail .leg-right {
+            transform: rotate(90deg);
+        }
+
+        .word-display {
+            font-size: 24px;
+            letter-spacing: 5px;
+            margin: 20px 0;
+        }
+
+        /* 翻译题核心样式 - 题干单词放大加粗（28px），比提示词醒目 */
+        .translation-question {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #2c3e50;
+        }
+        /* 翻译题选项样式 - 带A/B/C序号，三行同宽 */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 90%;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            background-color: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        /* 选项序号样式 */
+        .option-btn::before {
+            content: attr(data-index);
+            font-weight: bold;
+            margin-right: 15px;
+            color: #3498db;
+            font-size: 20px;
+        }
+
+        .option-btn:hover {
+            background-color: #e3e9ef;
+        }
+
+        .option-btn.correct {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        .option-btn.correct::before {
+            color: white;
+        }
+
+        .option-btn.incorrect {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+        .option-btn.incorrect::before {
+            color: white;
+        }
+
+        /* 结果弹窗 - 支持分行显示 */
+        .result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            display: none;
+        }
+        .result-modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .success-title {
+            color: #27ae60;
+        }
+        .fail-title {
+            color: #e74c3c;
+        }
+        .modal-desc {
+            font-size: 20px;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+        .modal-desc br {
+            margin: 10px 0;
+        }
+        .restart-btn {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        .restart-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 600px) {
+            .select-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            .key {
+                width: 35px;
+                height: 35px;
+            }
+            .hint-text {
+                font-size: 18px;
+            }
+            /* 手机端翻译题题干适配，稍调小 */
+            .translation-question {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部设置区 -->
+    <div class="settings">
+        <h2>KET词汇练习</h2>
+        <div class="select-group">
+            <select id="day-select">
+                <option value="">请选择天数</option>
+                <option value="1">Day1 - Food and Drink (食物和饮品)</option>
+                <option value="2">Day2 - Family and Home (家人和家庭)</option>
+                <option value="3">Day3 - Sport and Health (运动和健康)</option>
+                <option value="4">Day4 - Travel and Weather (旅行和天气)</option>
+                <option value="5">Day5 - The World (大千世界)</option>
+                <option value="6">Day6 - Shopping and Service (购物和服务)</option>
+                <option value="7">Day7 - Hobbies (业余爱好)</option>
+                <option value="8">Day8 - Clothes, Accessories and Time (服装、饰品和时间)</option>
+                <option value="9">Day9 - Communication and Technology (通讯和技术)</option>
+                <option value="10">Day10 - Education and Work (教育和工作)</option>
+            </select>
+            <select id="list-select" disabled>
+                <option value="">请选择List</option>
+                <option value="1">List 1</option>
+                <option value="2">List 2</option>
+                <option value="3">List 3</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 游戏选择区 - 顺序调整 -->
+    <div class="game-selection">
+        <h2>选择游戏模式</h2>
+        <div class="game-buttons">
+            <button class="game-btn" id="spelling-btn" disabled>Spell the word! 拼写单词</button>
+            <button class="game-btn" id="eng-to-ch-btn" disabled>What's the meaning? 英译中</button>
+            <button class="game-btn" id="ch-to-eng-btn" disabled>Choose the word! 中译英</button>
+            <button class="game-btn" id="hangman-btn" disabled>Hangman!吊小人</button>
+        </div>
+    </div>
+
+    <!-- 游戏容器 -->
+    <div class="game-container" id="spelling-game">
+        <h2 class="game-title">Spell the word! 拼写单词</h2>
+        <div class="status">
+            <p>进度: <span id="spelling-progress-text">0/0</span></p>
+            <div class="progress-container">
+                <div class="progress-bar" id="spelling-progress"></div>
+            </div>
+            <p id="spelling-message" class="hint-text normal-hint"></p>
+        </div>
+        <div class="game-content">
+            <div class="spelling-hint" id="spelling-hint">请拼写: </div>
+            <div class="word-display" id="spelling-word"></div>
+            <div class="keyboard" id="spelling-keyboard"></div>
+        </div>
+    </div>
+
+    <div class="game-container" id="eng-to-ch-game">
+        <h2 class="game-title">What's the meaning? 英译中</h2>
+        <div class="status">
+            <p>生命值: 
+                <span class="lives">
+                    <span class="heart" id="heart1">❤️</span>
+                    <span class="heart" id="heart2">❤️</span>
+                    <span class="heart" id="heart3">❤️</span>
+                </span>
+            </p>
+            <p>进度: <span id="eng-to-ch-progress-text">0/0</span></p>
+            <div class="progress-container">
+                <div class="progress-bar" id="eng-to-ch-progress"></div>
+            </div>
+            <p id="eng-to-ch-feedback" class="hint-text normal-hint"></p>
+        </div>
+        <div class="game-content">
+            <div class="translation-question" id="eng-to-ch-question"></div>
+            <div class="options-container" id="eng-to-eng-options"></div>
+        </div>
+    </div>
+
+    <div class="game-container" id="ch-to-eng-game">
+        <h2 class="game-title">Choose the word! 中译英</h2>
+        <div class="status">
+            <p>生命值: 
+                <span class="lives">
+                    <span class="heart" id="ch-heart1">❤️</span>
+                    <span class="heart" id="ch-heart2">❤️</span>
+                    <span class="heart" id="ch-heart3">❤️</span>
+                </span>
+            </p>
+            <p>进度: <span id="ch-to-eng-progress-text">0/0</span></p>
+            <div class="progress-container">
+                <div class="progress-bar" id="ch-to-eng-progress"></div>
+            </div>
+            <p id="ch-to-eng-feedback" class="hint-text normal-hint"></p>
+        </div>
+        <div class="game-content">
+            <div class="translation-question" id="ch-to-eng-question"></div>
+            <div class="options-container" id="ch-to-eng-options"></div>
+        </div>
+    </div>
+
+    <div class="game-container" id="hangman-game">
+        <h2 class="game-title">Hangman!吊小人</h2>
+        <div class="status">
+            <p>剩余失误次数: <span id="hangman-remaining">10</span></p>
+            <!-- 中文提示容器 -->
+            <p id="hangman-hint" class="hint-text success-hint" style="display: none;"></p>
+            <p id="hangman-message" class="hint-text normal-hint"></p>
+        </div>
+        <div class="hangman-figure" id="hangman-figure">
+            <div class="hangman-part stand"></div>
+            <div class="hangman-part beam"></div>
+            <div class="hangman-part rope"></div>
+            <div class="hangman-part head"></div>
+            <div class="hangman-part body"></div>
+            <div class="hangman-part arm-left"></div>
+            <div class="hangman-part arm-right"></div>
+            <div class="hangman-part leg-left"></div>
+            <div class="hangman-part leg-right"></div>
+        </div>
+        <div class="game-content">
+            <div class="word-display" id="hangman-word"></div>
+            <div class="keyboard" id="hangman-keyboard"></div>
+        </div>
+    </div>
+
+    <!-- 统一结果弹窗 -->
+    <div class="result-modal" id="result-modal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modal-title">🎉 游戏完成！ 🎉</h3>
+            <p class="modal-desc" id="modal-desc"></p>
+            <button class="restart-btn" id="modal-restart">重新开始游戏</button>
+        </div>
+    </div>
+
+    <script>
+        // 仅保留Day1完整词库
+        const vocabularyDB = {
+            1: { // Day1 - Food and Drink (食物和饮品)
+                1: [
+                    { en: "coffee", ch: "n. 咖啡豆;咖啡;咖啡粉" },
+                    { en: "café", ch: "n. 咖啡馆" },
+                    { en: "cola", ch: "n. 一杯可乐;可乐" },
+                    { en: "chocolate", ch: "n. 巧克力糖;巧克力" },
+                    { en: "drink", ch: "v. 喝 n. 饮料" },
+                    { en: "juice", ch: "n. 果汁;蔬菜汁" },
+                    { en: "lemonade", ch: "n. 柠檬汽水" },
+                    { en: "milk", ch: "n. 奶" },
+                    { en: "mineral", ch: "adj. 矿物的" },
+                    { en: "yoghurt", ch: "n. 酸奶" },
+                    { en: "bake", ch: "v. 烘焙" },
+                    { en: "boil", ch: "v. 煮" },
+                    { en: "fry", ch: "v. 油炸;油煎" },
+                    { en: "grill", ch: "v. 烤 n. 烤架" },
+                    { en: "roast", ch: "v. 烤" },
+                    { en: "toast", ch: "v. 烤 n. 吐司" },
+                    { en: "chef", ch: "n. 厨师;主厨" },
+                    { en: "cook", ch: "n. 厨师 v. 做饭,烹调" },
+                    { en: "waiter", ch: "n. 男服务员" },
+                    { en: "waitress", ch: "n. 女服务员" },
+                    { en: "fridge", ch: "n. 冰箱" },
+                    { en: "bottle", ch: "n. 瓶子" },
+                    { en: "bowl", ch: "n. 碗" },
+                    { en: "can", ch: "n. 罐头" },
+                    { en: "glass", ch: "n. 玻璃杯;玻璃;眼镜" },
+                    { en: "plate", ch: "n. 盘子,碟子" },
+                    { en: "dish", ch: "n. 盘子,碟子;菜肴" },
+                    { en: "fork", ch: "n. 餐叉" },
+                    { en: "knife", ch: "n. 刀" },
+                    { en: "slice", ch: "n. 薄片" },
+                    { en: "hungry", ch: "adj. 饥饿的" },
+                    { en: "thirsty", ch: "adj. 口渴的" }
+                ],
+                2: [
+                    { en: "jam", ch: "n. 果酱;拥挤,堵塞" },
+                    { en: "cafeteria", ch: "n. 自助餐厅" },
+                    { en: "meal", ch: "n. 餐" },
+                    { en: "picnic", ch: "v. 去野餐 n. 野餐" },
+                    { en: "breakfast", ch: "v. 吃早餐 n. 早餐" },
+                    { en: "lunch", ch: "v. 吃午餐 n. 午餐" },
+                    { en: "dinner", ch: "n. 晚宴;正餐" },
+                    { en: "supper", ch: "n. 晚饭,晚餐" },
+                    { en: "menu", ch: "n. 菜单" },
+                    { en: "dessert", ch: "n. 甜点,甜食" },
+                    { en: "snack", ch: "v. 吃快餐 n. 小吃;快餐" },
+                    { en: "salad", ch: "n. 沙拉" },
+                    { en: "soup", ch: "n. 汤" },
+                    { en: "omelette", ch: "n. 煎鸡蛋,煎蛋饼" },
+                    { en: "pasta", ch: "n. 意大利面" },
+                    { en: "cereal", ch: "n. 谷物" },
+                    { en: "rice", ch: "n. 大米;稻子" },
+                    { en: "meat", ch: "n. 肉" },
+                    { en: "chicken", ch: "n. 鸡;鸡肉" },
+                    { en: "sandwich", ch: "n. 三明治" },
+                    { en: "biscuit", ch: "n. 饼干" },
+                    { en: "chip", ch: "n. 炸薯条;芯片;碎片" },
+                    { en: "burger", ch: "n. 牛肉饼;汉堡包" },
+                    { en: "sausage", ch: "n. 香肠" },
+                    { en: "steak", ch: "n. 肉排;牛排" },
+                    { en: "ice cream", ch: "n. 一份冰激凌;冰激凌" },
+                    { en: "main", ch: "adj. 主要的,最重要的" }
+                ],
+                3: [
+                    { en: "butter", ch: "v. 涂黄油 n. 黄油" },
+                    { en: "oil", ch: "v. 加润滑油 n. 石油/食用油" },
+                    { en: "candy", ch: "n. 糖果,巧克力糖果" },
+                    { en: "cheese", ch: "n. 奶酪,干酪" },
+                    { en: "grape", ch: "n. 葡萄" },
+                    { en: "chilli", ch: "n. 辣椒" },
+                    { en: "curry", ch: "n. 咖喱 v. 用咖喱烹调" },
+                    { en: "pepper", ch: "n. 菜椒,甜椒;胡椒粉" },
+                    { en: "salt", ch: "n. 盐 adj. 含盐的 v. 加盐" },
+                    { en: "sauce", ch: "n. 调味汁,酱;无礼的话" },
+                    { en: "sugar", ch: "n. 糖;宝贝儿,亲爱的" },
+                    { en: "sweet", ch: "adj. 甜的;愉快的;甜美的" },
+                    { en: "vegetable", ch: "n. 蔬菜 adj. 植物的" },
+                    { en: "carrot", ch: "n. 胡萝卜" },
+                    { en: "onion", ch: "n. 洋葱" },
+                    { en: "potato", ch: "n. 土豆,马铃薯" },
+                    { en: "tomato", ch: "n. 西红柿" },
+                    { en: "mushroom", ch: "n. 蘑菇" },
+                    { en: "fruit", ch: "n. 水果" },
+                    { en: "melon", ch: "n. 甜瓜" },
+                    { en: "garlic", ch: "n. 大蒜" }
+                ]
+            },
+            2: { // Day2 - Family and Home (家人和家庭)
+                1: [
+                    { en: "aunt", ch: "姑姑;姨妈;婶婶" },
+                    { en: "boy", ch: "男孩" },
+                    { en: "brother", ch: "兄弟" },
+                    { en: "dad", ch: "爸爸" },
+                    { en: "father", ch: "父亲,爸爸" },
+                    { en: "girl", ch: "女孩" },
+                    { en: "grandma", ch: "(外)祖母" },
+                    { en: "grandpa", ch: "(外)祖父" },
+                    { en: "mother", ch: "母亲,妈妈" },
+                    { en: "Mr.", ch: "先生" },
+                    { en: "Ms.", ch: "女士(不指明婚否)" },
+                    { en: "Miss", ch: "小姐(礼貌称呼)" },
+                    { en: "sister", ch: "姐姐;妹妹" },
+                    { en: "son", ch: "儿子" },
+                    { en: "uncle", ch: "舅舅;叔叔" },
+                    { en: "armchair", ch: "手扶椅" },
+                    { en: "bathroom", ch: "浴室" },
+                    { en: "bed", ch: "床" },
+                    { en: "bedroom", ch: "卧室" },
+                    { en: "bookcase", ch: "书橱" },
+                    { en: "bookshelf", ch: "书架" },
+                    { en: "bowl", ch: "碗" },
+                    { en: "box", ch: "盒子" },
+                    { en: "chair", ch: "椅子" },
+                    { en: "clock", ch: "钟表" },
+                    { en: "computer", ch: "电脑" },
+                    { en: "cupboard", ch: "橱柜" },
+                    { en: "curtain", ch: "窗帘" },
+                    { en: "desk", ch: "书桌;办公桌;写字台" },
+                    { en: "door", ch: "门" },
+                    { en: "DVD player", ch: "DVD播放器" },
+                    { en: "floor", ch: "地板;地面;楼层" },
+                    { en: "home", ch: "家" },
+                    { en: "house", ch: "房子" },
+                    { en: "key", ch: "钥匙;答案" },
+                    { en: "kitchen", ch: "厨房" },
+                    { en: "light", ch: "光;轻的" },
+                    { en: "living room", ch: "客厅" },
+                    { en: "pillow", ch: "枕头" },
+                    { en: "room", ch: "房间" },
+                    { en: "shelf", ch: "架子" },
+                    { en: "shower", ch: "淋浴" },
+                    { en: "sofa", ch: "沙发" },
+                    { en: "towel", ch: "毛巾" }
+                ],
+                2: [
+                    { en: "child", ch: "儿童,小孩;儿子;女儿" },
+                    { en: "daughter", ch: "女儿" },
+                    { en: "friend", ch: "朋友,友人" },
+                    { en: "son", ch: "儿子" },
+                    { en: "granddaughter", ch: "(外)孙女" },
+                    { en: "grandfather", ch: "(外)祖父" },
+                    { en: "grandmother", ch: "(外)祖母" },
+                    { en: "grandson", ch: "孙子;外孙" },
+                    { en: "guy", ch: "男人(非正式)" },
+                    { en: "husband", ch: "丈夫" },
+                    { en: "parent", ch: "父亲;母亲" },
+                    { en: "wife", ch: "妻子,老婆,夫人" },
+                    { en: "pen-friend", ch: "笔友" },
+                    { en: "address", ch: "地址;住址" },
+                    { en: "bathtub", ch: "浴盆" },
+                    { en: "cooker", ch: "厨灶,炉具" },
+                    { en: "dining room", ch: "餐厅" },
+                    { en: "flat", ch: "公寓;单元房" },
+                    { en: "garden", ch: "(住宅旁的)花园" },
+                    { en: "gate", ch: "大门;栅栏门" },
+                    { en: "lamp", ch: "灯(尤指带灯罩)" },
+                    { en: "live", ch: "住,居住" },
+                    { en: "safe", ch: "安全的;没有危险的" },
+                    { en: "toilet", ch: "坐便器,马桶;厕所" }
+                ],
+                3: [
+                    { en: "cousin", ch: "堂(或表)兄弟/姐妹" },
+                    { en: "family", ch: "家,家庭" },
+                    { en: "friendly", ch: "友好的,友善的" },
+                    { en: "grandparent", ch: "(外)祖父(母)" },
+                    { en: "granny", ch: "(外)祖母" },
+                    { en: "group", ch: "组;群;批;簇" },
+                    { en: "guest", ch: "客人,宾客" },
+                    { en: "love", ch: "爱,喜爱" },
+                    { en: "married", ch: "已婚的;有配偶的" },
+                    { en: "neighbour", ch: "邻居" },
+                    { en: "surname", ch: "姓" },
+                    { en: "teenager", ch: "(13-19岁的)青少年" },
+                    { en: "apartment", ch: "公寓" },
+                    { en: "blanket", ch: "毛毯,毯子" },
+                    { en: "carpet", ch: "地毯;地毯织物" },
+                    { en: "downstairs", ch: "在楼下(尤指底层)" },
+                    { en: "drawer", ch: "抽屉" },
+                    { en: "entrance", ch: "入口;大门(口);通道" },
+                    { en: "furniture", ch: "家具" },
+                    { en: "garage", ch: "车库" },
+                    { en: "gas", ch: "气体;煤气,天然气" },
+                    { en: "hall", ch: "门厅;走廊" },
+                    { en: "heating", ch: "供暖系统;暖气设备" },
+                    { en: "refrigerator", ch: "冰箱" },
+                    { en: "roof", ch: "屋顶;车顶;顶部;盖子" },
+                    { en: "stay", ch: "待;留下;停留" }
+                ]
+            },
+            3: { // Day3 - Sport and Health (运动和健康)
+                1: [
+                    { en: "all", ch: "全部" },
+                    { en: "bike", ch: "自行车" },
+                    { en: "boat", ch: "小船" },
+                    { en: "climb", ch: "爬" },
+                    { en: "club", ch: "俱乐部" },
+                    { en: "fishing", ch: "钓鱼" },
+                    { en: "football", ch: "足球" },
+                    { en: "player", ch: "运动员;选手" },
+                    { en: "game", ch: "游戏" },
+                    { en: "luck", ch: "幸运" },
+                    { en: "pool", ch: "游泳池" },
+                    { en: "rest", ch: "休息" },
+                    { en: "run", ch: "跑" },
+                    { en: "skate", ch: "滑冰" },
+                    { en: "sport", ch: "体育运动" },
+                    { en: "swim", ch: "游泳" },
+                    { en: "team", ch: "团队" },
+                    { en: "walk", ch: "走;步行" },
+                    { en: "watch", ch: "看;注视;观看" },
+                    { en: "win", ch: "赢" },
+                    { en: "glove", ch: "手套" },
+                    { en: "winner", ch: "获胜者" },
+                    { en: "arm", ch: "手臂" },
+                    { en: "back", ch: "背;回原处" },
+                    { en: "body", ch: "身体" },
+                    { en: "clean", ch: "干净的;使干净" },
+                    { en: "cold", ch: "冷的;感冒" },
+                    { en: "cut", ch: "切" },
+                    { en: "fall", ch: "落下;秋天;瀑布" },
+                    { en: "finger", ch: "手指" },
+                    { en: "healthy", ch: "健康的" },
+                    { en: "foot", ch: "脚" },
+                    { en: "hair", ch: "头发" },
+                    { en: "hear", ch: "听见" },
+                    { en: "heart", ch: "心脏;心" },
+                    { en: "hospital", ch: "医院" },
+                    { en: "hurt", ch: "受伤;受伤的" },
+                    { en: "cough", ch: "咳嗽" },
+                    { en: "ill", ch: "生病的" },
+                    { en: "nurse", ch: "护士" },
+                    { en: "soap", ch: "肥皂" },
+                    { en: "die", ch: "死" },
+                    { en: "catch", ch: "抓住;赶上" }
+                ],
+                2: [
+                    { en: "badminton", ch: "羽毛球运动;羽毛球" },
+                    { en: "baseball", ch: "棒球" },
+                    { en: "basketball", ch: "篮球" },
+                    { en: "bat", ch: "球板;球棒" },
+                    { en: "helmet", ch: "头盔" },
+                    { en: "beach", ch: "沙滩" },
+                    { en: "bicycle", ch: "自行车" },
+                    { en: "coach", ch: "教练;长途汽车" },
+                    { en: "cricket", ch: "板球(运动)" },
+                    { en: "goal", ch: "进球得分;目标" },
+                    { en: "score", ch: "得分;分数" },
+                    { en: "kick", ch: "踢" },
+                    { en: "golf", ch: "高尔夫球运动" },
+                    { en: "hockey", ch: "曲棍球" },
+                    { en: "kit", ch: "成套装备" },
+                    { en: "member", ch: "成员;会员" },
+                    { en: "prize", ch: "奖;奖品" },
+                    { en: "race", ch: "赛跑;种族" },
+                    { en: "racket", ch: "球拍" },
+                    { en: "rugby", ch: "橄榄球" },
+                    { en: "sail", ch: "航行;启航" },
+                    { en: "skateboard", ch: "滑板" },
+                    { en: "ski", ch: "滑雪" },
+                    { en: "snowboard", ch: "滑雪板" },
+                    { en: "soccer", ch: "足球" },
+                    { en: "sports centre", ch: "体育中心" },
+                    { en: "stadium", ch: "体育场" },
+                    { en: "surf", ch: "冲浪" },
+                    { en: "costume", ch: "服装" },
+                    { en: "swimsuit", ch: "泳衣" },
+                    { en: "table tennis", ch: "乒乓球" },
+                    { en: "tennis", ch: "网球" },
+                    { en: "throw", ch: "扔;投掷" },
+                    { en: "ticket", ch: "票" },
+                    { en: "tired", ch: "疲倦的" },
+                    { en: "trainer", ch: "运动鞋;教练员" },
+                    { en: "versus", ch: "……对……" },
+                    { en: "volleyball", ch: "排球" },
+                    { en: "windsurfing", ch: "帆板运动" },
+                    { en: "blood", ch: "血" },
+                    { en: "brain", ch: "大脑" },
+                    { en: "check", ch: "检查" },
+                    { en: "chemist", ch: "药剂师" },
+                    { en: "dangerous", ch: "危险的" },
+                    { en: "dentist", ch: "牙科医生" },
+                    { en: "neck", ch: "脖子" },
+                    { en: "pain", ch: "疼痛" },
+                    { en: "stomachache", ch: "胃痛" },
+                    { en: "tooth", ch: "牙齿" }
+                ],
+                3: [
+                    { en: "competition", ch: "比赛;竞赛" },
+                    { en: "enter", ch: "进入" },
+                    { en: "interview", ch: "面试;采访" },
+                    { en: "exercise", ch: "练习;锻炼" },
+                    { en: "regular", ch: "定期的;有规律的;规则的" },
+                    { en: "fitness", ch: "健康;适当" },
+                    { en: "shoot", ch: "射击" },
+                    { en: "striker", ch: "前锋" },
+                    { en: "judge", ch: "裁判;判断" },
+                    { en: "accident", ch: "事故" },
+                    { en: "ambulance", ch: "救护车" },
+                    { en: "appointment", ch: "预约" },
+                    { en: "bandage", ch: "绷带" },
+                    { en: "lie down", ch: "躺下;休息" },
+                    { en: "medicine", ch: "药;医学" },
+                    { en: "problem", ch: "问题" },
+                    { en: "temperature", ch: "温度" },
+                    { en: "toothache", ch: "牙痛" },
+                    { en: "toothbrush", ch: "牙刷" }
+                ]
+            },
+            4: { // Day4 - Travel and Weather (旅行和天气)
+                1: [
+                    { en: "train", ch: "n. 火车 v. 训练" },
+                    { en: "bus", ch: "n. 公共汽车" },
+                    { en: "taxi", ch: "n. 出租车" },
+                    { en: "car", ch: "n. 小汽车" },
+                    { en: "drive", ch: "v. 开车" },
+                    { en: "miss", ch: "v. 错过;想念 n. 小姐" },
+                    { en: "move", ch: "v. 移动" },
+                    { en: "storm", ch: "n. 暴风雨" },
+                    { en: "park", ch: "n. 公园 v. 停" },
+                    { en: "ride", ch: "v. 骑" },
+                    { en: "right", ch: "n. 右边 adj. 正确的" },
+                    { en: "road", ch: "n. 道路;公路" },
+                    { en: "seat", ch: "n. 座位" },
+                    { en: "ship", ch: "n. 轮船" },
+                    { en: "street", ch: "n. 街道" },
+                    { en: "window", ch: "n. 窗户" },
+                    { en: "cloud", ch: "n. 云;云朵" },
+                    { en: "cloudy", ch: "adj. 多云的" },
+                    { en: "cold", ch: "adj. 冷的" },
+                    { en: "fog", ch: "n. 雾" },
+                    { en: "foggy", ch: "adj. 有雾的" },
+                    { en: "hot", ch: "adj. 热的" },
+                    { en: "ice", ch: "n. 冰" },
+                    { en: "rain", ch: "n. 雨 v. 下雨" },
+                    { en: "slow", ch: "adj. 慢的" },
+                    { en: "sun", ch: "n. 太阳;阳光" },
+                    { en: "sunny", ch: "adj. 晴朗的" },
+                    { en: "wet", ch: "adj. 潮湿的" },
+                    { en: "wind", ch: "n. 风" },
+                    { en: "warm", ch: "adj. 温暖的" },
+                    { en: "case", ch: "n. 盒子;案例" },
+                    { en: "far", ch: "adj. 远的 adv. 远" },
+                    { en: "clear", ch: "adj. 清楚的;清澈的" },
+                    { en: "cool", ch: "adj. 凉爽的;冷静的" }
+                ],
+                2: [
+                    { en: "plane", ch: "n. 飞机" },
+                    { en: "airport", ch: "n. 机场" },
+                    { en: "backpack", ch: "n. 背包" },
+                    { en: "bridge", ch: "n. 桥" },
+                    { en: "breeze", ch: "n. 微风;和风" },
+                    { en: "country", ch: "n. 国家;乡村" },
+                    { en: "delay", ch: "v. 推迟 n. 延迟" },
+                    { en: "engine", ch: "n. 引擎" },
+                    { en: "flight", ch: "n. 飞行;航班" },
+                    { en: "journey", ch: "n. 旅行" },
+                    { en: "machine", ch: "n. 机器" },
+                    { en: "mirror", ch: "n. 镜子" },
+                    { en: "motorbike", ch: "n. 摩托车" },
+                    { en: "motorway", ch: "n. 高速公路" },
+                    { en: "passport", ch: "n. 护照" },
+                    { en: "petrol", ch: "n. 汽油" },
+                    { en: "railway", ch: "n. 铁路" },
+                    { en: "repair", ch: "v. 修理" },
+                    { en: "return", ch: "v. 返回" },
+                    { en: "sailing", ch: "n. 航行;帆船运动" },
+                    { en: "suitcase", ch: "n. 手提箱" },
+                    { en: "tourist", ch: "n. 游客" },
+                    { en: "traffic", ch: "n. 交通" },
+                    { en: "tyre", ch: "n. 轮胎" },
+                    { en: "underground", ch: "n. 地铁 adj. 地下的" },
+                    { en: "visit", ch: "v. 访问;拜访;参观" },
+                    { en: "wheel", ch: "n. 轮子" },
+                    { en: "weather", ch: "n. 天气" }
+                ],
+                3: [
+                    { en: "driving licence", ch: "驾驶执照" },
+                    { en: "explorer", ch: "n. 探险者,探险家" },
+                    { en: "luggage", ch: "n. 行李" },
+                    { en: "mechanic", ch: "n. 机械师;修理工" },
+                    { en: "passenger", ch: "n. 乘客" },
+                    { en: "platform", ch: "n. 月台;站台" },
+                    { en: "roundabout", ch: "n. 环岛" },
+                    { en: "straight", ch: "adj. 直的" },
+                    { en: "information", ch: "n. 信息" },
+                    { en: "thunderstorm", ch: "n. 雷暴" },
+                    { en: "degree", ch: "n. 度;程度" }
+                ]
+            },
+            5: { // Day5 - The World (大千世界)
+                1: [
+                    { en: "air", ch: "空气;通风" },
+                    { en: "bee", ch: "蜜蜂" },
+                    { en: "fire", ch: "火;失火" },
+                    { en: "hot", ch: "热的" },
+                    { en: "moon", ch: "月亮" },
+                    { en: "rabbit", ch: "兔子" },
+                    { en: "river", ch: "河" },
+                    { en: "sea", ch: "海" },
+                    { en: "sky", ch: "天空" },
+                    { en: "star", ch: "星星" },
+                    { en: "tree", ch: "树" },
+                    { en: "water", ch: "水" },
+                    { en: "wood", ch: "树林;木头" },
+                    { en: "bus stop", ch: "公交车站" },
+                    { en: "zoo", ch: "动物园" },
+                    { en: "bookshop", ch: "书店" },
+                    { en: "factory", ch: "工厂" },
+                    { en: "hotel", ch: "宾馆" },
+                    { en: "police station", ch: "警察局" },
+                    { en: "post office", ch: "邮局" },
+                    { en: "car park", ch: "停车场" },
+                    { en: "market", ch: "市场" },
+                    { en: "supermarket", ch: "超市" },
+                    { en: "flower", ch: "花" },
+                    { en: "forest", ch: "森林" },
+                    { en: "grass", ch: "草" },
+                    { en: "plant", ch: "植物;种植" }
+                ],
+                2: [
+                    { en: "autumn", ch: "秋天" },
+                    { en: "countryside", ch: "乡下;农村" },
+                    { en: "desert", ch: "沙漠" },
+                    { en: "east", ch: "东方;东方的" },
+                    { en: "field", ch: "田地;领域;场地" },
+                    { en: "grow", ch: "生长;种植" },
+                    { en: "hill", ch: "小山;山丘" },
+                    { en: "island", ch: "岛" },
+                    { en: "mountain", ch: "高山" },
+                    { en: "north", ch: "北方;北方的" },
+                    { en: "south", ch: "南方;南方的" },
+                    { en: "space", ch: "空间;太空" },
+                    { en: "spring", ch: "春天;泉水;弹簧" },
+                    { en: "summer", ch: "夏天" },
+                    { en: "west", ch: "西方;西方的" },
+                    { en: "winter", ch: "冬天" },
+                    { en: "wool", ch: "羊毛" },
+                    { en: "world", ch: "世界" },
+                    { en: "square", ch: "广场;正方形" },
+                    { en: "city centre", ch: "城市中心" },
+                    { en: "town", ch: "城镇" },
+                    { en: "corner", ch: "角落" },
+                    { en: "block", ch: "大楼;幢,栋" },
+                    { en: "building", ch: "建筑物;楼房" },
+                    { en: "castle", ch: "城堡" },
+                    { en: "cinema", ch: "电影院" },
+                    { en: "college", ch: "学院,职业学校" },
+                    { en: "disco", ch: "迪斯科舞会" },
+                    { en: "exit", ch: "出口" },
+                    { en: "library", ch: "图书馆" },
+                    { en: "museum", ch: "博物馆" },
+                    { en: "theatre", ch: "剧院" }
+                ],
+                3: [
+                    { en: "petrol station", ch: "加油站" },
+                    { en: "merry-go-round", ch: "旋转木马" },
+                    { en: "cathedral", ch: "大教堂" },
+                    { en: "department store", ch: "百货商店" },
+                    { en: "elevator", ch: "电梯" },
+                    { en: "grocery", ch: "杂货店" },
+                    { en: "guest house", ch: "招待所" },
+                    { en: "pharmacy", ch: "药房" },
+                    { en: "university", ch: "(综合性)大学" }
+                ]
+            },
+            6: { // Day6 - Shopping and Service (购物和服务)
+                1: [
+                    { en: "bill", ch: "账单" },
+                    { en: "buy", ch: "买" },
+                    { en: "cheap", ch: "便宜的" },
+                    { en: "close", ch: "关" },
+                    { en: "open", ch: "开" },
+                    { en: "pay", ch: "支付" },
+                    { en: "rent", ch: "租;租金" },
+                    { en: "shop", ch: "商店;购物" },
+                    { en: "bank", ch: "银行;河岸" },
+                    { en: "alone", ch: "独自的" },
+                    { en: "bad", ch: "坏的" },
+                    { en: "big", ch: "大的" },
+                    { en: "busy", ch: "忙的" },
+                    { en: "quick", ch: "快的;迅速的" },
+                    { en: "good", ch: "好的" },
+                    { en: "free", ch: "自由的;免费的" },
+                    { en: "happy", ch: "快乐的" },
+                    { en: "unhappy", ch: "不快乐的" },
+                    { en: "hard", ch: "硬的;难的;努力地" },
+                    { en: "nice", ch: "令人愉快的;好看的" },
+                    { en: "old", ch: "老的;旧的" },
+                    { en: "poor", ch: "穷的;可怜的" },
+                    { en: "well", ch: "好地" },
+                    { en: "fast", ch: "快地;快的" },
+                    { en: "real", ch: "真的;现实的" },
+                    { en: "rich", ch: "富有的" },
+                    { en: "small", ch: "小的" },
+                    { en: "soft", ch: "软的" },
+                    { en: "sorry", ch: "抱歉的" },
+                    { en: "strong", ch: "强壮的;结实的" },
+                    { en: "sure", ch: "确定的" }
+                ],
+                2: [
+                    { en: "expensive", ch: "昂贵的" },
+                    { en: "for sale", ch: "出售;待售" },
+                    { en: "penny", ch: "便士" },
+                    { en: "pound", ch: "英镑;磅" },
+                    { en: "price", ch: "价格" },
+                    { en: "shopper", ch: "购物者" },
+                    { en: "spend", ch: "花费" },
+                    { en: "store", ch: "商店;储存" },
+                    { en: "worth", ch: "值……钱;值得" },
+                    { en: "try on", ch: "试穿" },
+                    { en: "be able to", ch: "能够;会" },
+                    { en: "angry", ch: "生气的" },
+                    { en: "beautiful", ch: "漂亮的" },
+                    { en: "careful", ch: "仔细的;谨慎的" },
+                    { en: "boring", ch: "无聊的" },
+                    { en: "brave", ch: "勇敢的" },
+                    { en: "clever", ch: "聪明的" },
+                    { en: "different", ch: "不同的" },
+                    { en: "difficult", ch: "困难的" },
+                    { en: "famous", ch: "著名的" },
+                    { en: "favourite", ch: "最喜欢的" },
+                    { en: "friendly", ch: "友好的" },
+                    { en: "great", ch: "极好的;伟大的;高的" },
+                    { en: "heavy", ch: "重的;大的" },
+                    { en: "high", ch: "高的" },
+                    { en: "important", ch: "重要的" },
+                    { en: "interesting", ch: "有趣的" },
+                    { en: "lonely", ch: "孤独的;孤单的" },
+                    { en: "lucky", ch: "幸运的" },
+                    { en: "pleasant", ch: "令人愉快的;宜人的" },
+                    { en: "pretty", ch: "漂亮的" },
+                    { en: "quite", ch: "相当;比较" },
+                    { en: "ready", ch: "准备好的" },
+                    { en: "strange", ch: "奇怪的" },
+                    { en: "useful", ch: "有用的" },
+                    { en: "worried", ch: "担心的" },
+                    { en: "wrong", ch: "错误的" },
+                    { en: "young", ch: "年轻的;小的" }
+                ],
+                3: [
+                    { en: "advertisement", ch: "广告" },
+                    { en: "assistant", ch: "助理" },
+                    { en: "cheque", ch: "支票" },
+                    { en: "credit card", ch: "信用卡" },
+                    { en: "department", ch: "部门" },
+                    { en: "euro", ch: "欧元" },
+                    { en: "receipt", ch: "收据" },
+                    { en: "shop assistant", ch: "售货员" },
+                    { en: "amazing", ch: "令人惊叹的;使人诧异的" },
+                    { en: "brilliant", ch: "明亮的;绝妙的;才华横溢的" },
+                    { en: "excellent", ch: "杰出的;极好的" },
+                    { en: "special", ch: "特别的" },
+                    { en: "terrible", ch: "可怕的;极差的" }
+                ]
+            },
+            7: { // Day7 - Hobbies (业余爱好)
+                1: [
+                    { en: "book", ch: "n.书;v.预订" },
+                    { en: "camp", ch: "n.营地;v.野营" },
+                    { en: "CD player", ch: "CD播放机" },
+                    { en: "rowing", ch: "n.划船" },
+                    { en: "MP3 player", ch: "MP3播放器" },
+                    { en: "dance", ch: "n.舞蹈" },
+                    { en: "hobby", ch: "n.业余爱好" },
+                    { en: "party", ch: "n.聚会;派对" },
+                    { en: "musician", ch: "n.音乐家" },
+                    { en: "film", ch: "n.电影" },
+                    { en: "fun", ch: "n.乐趣;adj.有趣的" },
+                    { en: "chess", ch: "n.国际象棋" },
+                    { en: "look at", ch: "看" },
+                    { en: "news", ch: "n.消息;新闻" },
+                    { en: "newspaper", ch: "n.报纸" },
+                    { en: "piano", ch: "n.钢琴" },
+                    { en: "cartoon", ch: "n.卡通" },
+                    { en: "play", ch: "n.戏剧;v.玩耍" },
+                    { en: "card", ch: "n.卡片" },
+                    { en: "pop music", ch: "流行音乐" },
+                    { en: "read", ch: "v.阅读" },
+                    { en: "sing", ch: "v.唱歌" },
+                    { en: "singer", ch: "n.歌手" },
+                    { en: "song", ch: "n.歌曲" }
+                ],
+                2: [
+                    { en: "barbecue", ch: "n. 户外烧烤" },
+                    { en: "computer", ch: "n. 计算机" },
+                    { en: "campsite", ch: "n. 野营地" },
+                    { en: "collect", ch: "v. 收集" },
+                    { en: "draw", ch: "v. 画" },
+                    { en: "festival", ch: "n. 节日" },
+                    { en: "guitar", ch: "n. 吉他" },
+                    { en: "holiday", ch: "n. 假期" },
+                    { en: "join", ch: "v. 加入" },
+                    { en: "magazine", ch: "n. 杂志" },
+                    { en: "article", ch: "n. 文章;物件" },
+                    { en: "paint", ch: "v. 用颜料画; n. 油漆" },
+                    { en: "painter", ch: "n. 画家" },
+                    { en: "tent", ch: "n. 帐篷" },
+                    { en: "video game", ch: "电子游戏" },
+                    { en: "laugh", ch: "v. 笑" },
+                    { en: "classical", ch: "adj. 古典的" },
+                    { en: "group", ch: "n. 群;团体" },
+                    { en: "hip hop", ch: "嘻哈文化" },
+                    { en: "keyboard", ch: "n. 键盘;键盘式电子乐器" },
+                    { en: "listen", ch: "v. 听" },
+                    { en: "quiz", ch: "n. 知识竞赛;小测验" },
+                    { en: "concert", ch: "n. 音乐会" },
+                    { en: "drum", ch: "n. 鼓" },
+                    { en: "picture", ch: "n. 图画" },
+                    { en: "project", ch: "n. 项目;任务" },
+                    { en: "radio", ch: "n. 收音机;广播" },
+                    { en: "rock", ch: "n. 石头;摇滚乐" },
+                    { en: "screen", ch: "n. 屏幕" },
+                    { en: "show", ch: "v. 表明;展示 n. 演出,节目" },
+                    { en: "television", ch: "n. 电视" },
+                    { en: "theme park", ch: "主题公园" },
+                    { en: "wonderful", ch: "adj. 令人赞叹的;非常好的" },
+                    { en: "in advance", ch: "预先;提前" },
+                    { en: "at present", ch: "目前" },
+                    { en: "in the past", ch: "过去" },
+                    { en: "no later than", ch: "不迟于" },
+                    { en: "bass", ch: "n. 贝斯" },
+                    { en: "aloud", ch: "adv. 大声地" },
+                    { en: "possible", ch: "adj. 可能的" }
+                ],
+                3: [
+                    { en: "adventure", ch: "n. 冒险" },
+                    { en: "photograph", ch: "n. 照片" },
+                    { en: "exhibition", ch: "n. 展览" },
+                    { en: "instrument", ch: "n. 乐器" },
+                    { en: "opera", ch: "n. 歌剧" },
+                    { en: "programme", ch: "n. 节目;计划" },
+                    { en: "entertainment", ch: "n. 娱乐" },
+                    { en: "media", ch: "n. 媒体" },
+                    { en: "leisure", ch: "n. 空闲" },
+                    { en: "amusement park", ch: "游乐园" },
+                    { en: "roller coaster", ch: "过山车" },
+                    { en: "special effect", ch: "特效" },
+                    { en: "possibility", ch: "n. 可能,可能性" },
+                    { en: "director", ch: "n. 导演;负责人" },
+                    { en: "fight scene", ch: "打斗场面" },
+                    { en: "kung fu", ch: "功夫" },
+                    { en: "cartwheel", ch: "v. 侧手翻" },
+                    { en: "in tears", ch: "流眼泪" },
+                    { en: "live music", ch: "现场音乐" },
+                    { en: "afterwards", ch: "adv. 后来;紧接着" },
+                    { en: "speaker", ch: "n. 发言者;扬声器" },
+                    { en: "funny", ch: "adj. 滑稽的;幽默的" },
+                    { en: "comic", ch: "n. 喜剧演员; adj. 喜剧的" },
+                    { en: "dislike", ch: "v. 不喜欢;厌恶" }
+                ]
+            },
+            8: { // Day8 - Clothes, Accessories and Time (服装、饰品和时间)
+                1: [
+                    { en: "bag", ch: "袋子" },
+                    { en: "boot", ch: "靴子" },
+                    { en: "sock", ch: "短袜" },
+                    { en: "coat", ch: "大衣" },
+                    { en: "dress", ch: "连衣裙;给…穿衣服" },
+                    { en: "hat", ch: "帽子" },
+                    { en: "tie", ch: "领带;系" },
+                    { en: "black", ch: "黑色的;黑色" },
+                    { en: "blue", ch: "蓝色的;蓝色" },
+                    { en: "brown", ch: "棕色的;棕色" },
+                    { en: "dark", ch: "黑暗的;深色的" },
+                    { en: "green", ch: "绿色的;绿色" },
+                    { en: "orange", ch: "橙子;橙色;橙色的" },
+                    { en: "pink", ch: "粉色的;粉色" },
+                    { en: "red", ch: "红色的;红色" },
+                    { en: "yellow", ch: "黄色的;黄色" },
+                    { en: "afternoon", ch: "下午,午后" },
+                    { en: "date", ch: "日期" },
+                    { en: "day", ch: "天" },
+                    { en: "night", ch: "夜晚,晚上" },
+                    { en: "hour", ch: "小时" },
+                    { en: "minute", ch: "分钟" },
+                    { en: "second", ch: "秒;第二" },
+                    { en: "month", ch: "月,月份" },
+                    { en: "noon", ch: "正午;中午" },
+                    { en: "time", ch: "次数;时间" },
+                    { en: "today", ch: "今天" },
+                    { en: "week", ch: "星期" },
+                    { en: "year", ch: "年" },
+                    { en: "white", ch: "白色的" }
+                ],
+                2: [
+                    { en: "bathing suit", ch: "泳衣" },
+                    { en: "belt", ch: "腰带" },
+                    { en: "chain", ch: "链子" },
+                    { en: "clothes", ch: "衣服" },
+                    { en: "earring", ch: "耳环" },
+                    { en: "fashion", ch: "时尚" },
+                    { en: "jacket", ch: "夹克衫" },
+                    { en: "jeans", ch: "牛仔裤" },
+                    { en: "jumper", ch: "针织外套" },
+                    { en: "pocket", ch: "口袋" },
+                    { en: "purse", ch: "钱包(女)" },
+                    { en: "raincoat", ch: "雨衣" },
+                    { en: "shorts", ch: "短裤" },
+                    { en: "skirt", ch: "短裙" },
+                    { en: "sunglasses", ch: "太阳眼镜" },
+                    { en: "trousers", ch: "裤子" },
+                    { en: "sweater", ch: "毛衣" },
+                    { en: "umbrella", ch: "雨伞" },
+                    { en: "wallet", ch: "钱包(男式)" },
+                    { en: "wear", ch: "穿;戴" },
+                    { en: "golden", ch: "金色的;金色" },
+                    { en: "grey", ch: "灰色的;灰色" },
+                    { en: "pale", ch: "苍白的" },
+                    { en: "purple", ch: "紫色的;紫色" },
+                    { en: "birthday", ch: "生日" },
+                    { en: "daily", ch: "每日的;每日地" },
+                    { en: "diary", ch: "日记" },
+                    { en: "half", ch: "一半" },
+                    { en: "midnight", ch: "午夜" },
+                    { en: "moment", ch: "片刻;瞬间" },
+                    { en: "morning", ch: "早晨,上午" },
+                    { en: "o'clock", ch: "……点钟" },
+                    { en: "quarter", ch: "四分之一" },
+                    { en: "tomorrow", ch: "明天" },
+                    { en: "tonight", ch: "今晚" },
+                    { en: "weekday", ch: "工作日" },
+                    { en: "weekend", ch: "周末" },
+                    { en: "weekly", ch: "每周一次的;每周一次地" },
+                    { en: "yesterday", ch: "昨天" }
+                ],
+                3: [
+                    { en: "blouse", ch: "女士衬衫" },
+                    { en: "bracelet", ch: "手镯;手链" },
+                    { en: "jewellery", ch: "珠宝" },
+                    { en: "necklace", ch: "项链" },
+                    { en: "scarf", ch: "围巾" },
+                    { en: "tight", ch: "紧身的" },
+                    { en: "calendar", ch: "日历" },
+                    { en: "century", ch: "世纪" },
+                    { en: "Monday", ch: "星期一" },
+                    { en: "Tuesday", ch: "星期二" },
+                    { en: "Wednesday", ch: "星期三" },
+                    { en: "Thursday", ch: "星期四" },
+                    { en: "Friday", ch: "星期五" },
+                    { en: "Saturday", ch: "星期六" },
+                    { en: "Sunday", ch: "星期天" },
+                    { en: "January", ch: "一月" },
+                    { en: "February", ch: "二月" },
+                    { en: "March", ch: "三月" },
+                    { en: "April", ch: "四月" },
+                    { en: "May", ch: "五月" },
+                    { en: "June", ch: "六月" },
+                    { en: "July", ch: "七月" },
+                    { en: "August", ch: "八月" },
+                    { en: "September", ch: "九月" },
+                    { en: "October", ch: "十月" },
+                    { en: "November", ch: "十一月" },
+                    { en: "December", ch: "十二月" }
+                ]
+            },
+            9: { // Day9 - Communication and Technology (通讯和技术)
+                1: [
+                    { en: "call", ch: "打电话" },
+                    { en: "dot", ch: "点" },
+                    { en: "e-mail", ch: "电子邮件" },
+                    { en: "talk", ch: "谈话;说话" },
+                    { en: "text", ch: "课本;教材;文本,正文" },
+                    { en: "gas", ch: "气体;天然气" },
+                    { en: "mobile", ch: "可移动的;手机" },
+                    { en: "telephone", ch: "电话机;电话" },
+                    { en: "cell phone", ch: "手机" },
+                    { en: "mouse", ch: "老鼠;鼠标" },
+                    { en: "net", ch: "网" },
+                    { en: "online", ch: "在线的;网上的" },
+                    { en: "metre", ch: "米" }
+                ],
+                2: [
+                    { en: "camera", ch: "照相机" },
+                    { en: "digital", ch: "数码的" },
+                    { en: "letter", ch: "信" },
+                    { en: "chat", ch: "聊天" },
+                    { en: "click", ch: "点击" },
+                    { en: "conversation", ch: "谈话;交谈" },
+                    { en: "download", ch: "下载" },
+                    { en: "heat", ch: "加热;热" },
+                    { en: "laptop", ch: "手提电脑" },
+                    { en: "PC", ch: "个人电脑" },
+                    { en: "washing machine", ch: "洗衣机" },
+                    { en: "envelope", ch: "信封" },
+                    { en: "file", ch: "文件夹" },
+                    { en: "Internet", ch: "互联网" },
+                    { en: "printer", ch: "印刷工人;打印机" },
+                    { en: "software", ch: "软件" },
+                    { en: "web page", ch: "网页" },
+                    { en: "website", ch: "网站" },
+                    { en: "licence", ch: "许可证;执照" },
+                    { en: "message", ch: "信息;口信" },
+                    { en: "note", ch: "便条;笔记" },
+                    { en: "postcard", ch: "明信片" },
+                    { en: "gramme", ch: "克" },
+                    { en: "form", ch: "表格;形成" },
+                    { en: "notebook", ch: "笔记本" },
+                    { en: "kilometre", ch: "千米;公里" },
+                    { en: "chat room", ch: "聊天室" },
+                    { en: "robot", ch: "机器人" },
+                    { en: "comfortable", ch: "舒适的" },
+                    { en: "per cent", ch: "百分比" }
+                ],
+                3: [
+                    { en: "electric", ch: "电的;用电的" },
+                    { en: "electricity", ch: "电" },
+                    { en: "centimetre", ch: "厘米" },
+                    { en: "slave", ch: "奴隶" },
+                    { en: "simple", ch: "简单的" },
+                    { en: "community", ch: "社区;团体" },
+                    { en: "separate", ch: "分开的" },
+                    { en: "society", ch: "社会" },
+                    { en: "social life", ch: "社交生活" },
+                    { en: "technology", ch: "技术" },
+                    { en: "purpose", ch: "目的" },
+                    { en: "version", ch: "版本" },
+                    { en: "calculator", ch: "计算器" },
+                    { en: "make a noise", ch: "制造噪音" },
+                    { en: "communicate", ch: "交流" }
+                ]
+            },
+            10: { // Day10 - Education and Work (教育和工作)
+                1: [
+                    { en: "school", ch: "学校" },
+                    { en: "ruler", ch: "尺子;统治者" },
+                    { en: "blackboard", ch: "黑板" },
+                    { en: "eraser", ch: "橡皮" },
+                    { en: "boss", ch: "老板" },
+                    { en: "classroom", ch: "教室" },
+                    { en: "lesson", ch: "课" },
+                    { en: "homework", ch: "家庭作业,功课" },
+                    { en: "class", ch: "课;班级" },
+                    { en: "classmate", ch: "同班同学" },
+                    { en: "pupil", ch: "小学生" },
+                    { en: "actor", ch: "演员" },
+                    { en: "artist", ch: "艺术家" },
+                    { en: "doctor", ch: "医生;博士" },
+                    { en: "king", ch: "国王;王" },
+                    { en: "queen", ch: "女王" },
+                    { en: "monitor", ch: "班长;监督员" },
+                    { en: "driver", ch: "司机" },
+                    { en: "manager", ch: "经理" },
+                    { en: "businessman", ch: "(男)商人" },
+                    { en: "meeting", ch: "会议" },
+                    { en: "student", ch: "学生" },
+                    { en: "teacher", ch: "老师" },
+                    { en: "tennis player", ch: "网球运动员" },
+                    { en: "cleaner", ch: "清洁工" },
+                    { en: "nursery", ch: "托儿所;幼儿园" },
+                    { en: "farm", ch: "农场" },
+                    { en: "office", ch: "办公室" },
+                    { en: "work", ch: "工作;作品" },
+                    { en: "football player", ch: "足球运动员" },
+                    { en: "worker", ch: "工人" },
+                    { en: "customer", ch: "顾客,客户" },
+                    { en: "writer", ch: "作家" }
+                ],
+                2: [
+                    { en: "level", ch: "能力;水平;级别" },
+                    { en: "science", ch: "科学;自然科学" },
+                    { en: "beginner", ch: "新手,初学者" },
+                    { en: "course", ch: "课程;教程" },
+                    { en: "dictionary", ch: "字典;词典" },
+                    { en: "chemistry", ch: "化学" },
+                    { en: "geography", ch: "地理;地理学" },
+                    { en: "history", ch: "历史;历史学" },
+                    { en: "physics", ch: "物理学" },
+                    { en: "maths", ch: "数学" },
+                    { en: "mathematics", ch: "数学" },
+                    { en: "language", ch: "语言" },
+                    { en: "Exam", ch: "考试" },
+                    { en: "examination", ch: "考试" },
+                    { en: "mark", ch: "分数;成绩" },
+                    { en: "learn", ch: "学,学习" },
+                    { en: "know", ch: "知道;熟悉;了解" },
+                    { en: "remember", ch: "记得,记起;记住,牢记" },
+                    { en: "diploma", ch: "结业证书,考试证书" },
+                    { en: "business", ch: "商业,买卖" },
+                    { en: "engineer", ch: "工程师" },
+                    { en: "uniform", ch: "制服" },
+                    { en: "footballer", ch: "(尤指职业的)足球运动员" },
+                    { en: "photographer", ch: "摄影者;摄影师" },
+                    { en: "pilot", ch: "飞行员" },
+                    { en: "receptionist", ch: "接待员" }
+                ],
+                3: [
+                    { en: "advanced", ch: "高等的;高级的" },
+                    { en: "instruction", ch: "使用说明;操作指南" },
+                    { en: "practice", ch: "练习( v./n. )" },
+                    { en: "staff", ch: "全体员工;全体雇员" },
+                    { en: "guide", ch: "指南;手册" },
+                    { en: "tour guide", ch: "导游" },
+                    { en: "occupation", ch: "职业;工作" },
+                    { en: "earn", ch: "挣得;赚得" }
+                ]
+            }
+        };
+
+        // 全局变量
+        let currentDay = "";
+        let currentList = "";
+        let currentVocab = [];
+        let currentGameType = ""; // 记录当前游戏类型
+
+        // DOM 元素
+        const daySelect = document.getElementById('day-select');
+        const listSelect = document.getElementById('list-select');
+        const gameButtons = document.querySelectorAll('.game-btn');
+        const resultModal = document.getElementById('result-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+        const modalRestart = document.getElementById('modal-restart');
+        const hangmanFigure = document.getElementById('hangman-figure');
+        const hangmanHint = document.getElementById('hangman-hint'); // 吊小人中文提示
+
+        // 游戏容器
+        const spellingGame = document.getElementById('spelling-game');
+        const engToChGame = document.getElementById('eng-to-ch-game');
+        const chToEngGame = document.getElementById('ch-to-eng-game');
+        const hangmanGame = document.getElementById('hangman-game');
+
+        // 初始化
+        function init() {
+            // 天数选择事件
+            daySelect.addEventListener('change', function() {
+                currentDay = this.value;
+                if (currentDay) {
+                    listSelect.disabled = false;
+                    listSelect.value = "";
+                    resetGameButtons();
+                } else {
+                    listSelect.disabled = true;
+                    resetGameButtons();
+                }
+            });
+
+            // List选择事件
+            listSelect.addEventListener('change', function() {
+                currentList = this.value;
+                if (currentDay && currentList) {
+                    if (vocabularyDB[currentDay] && vocabularyDB[currentDay][currentList]) {
+                        currentVocab = vocabularyDB[currentDay][currentList];
+                        enableGameButtons();
+                    } else {
+                        alert('当前选择的词汇库不存在，请选择其他组合');
+                        resetGameButtons();
+                    }
+                } else {
+                    resetGameButtons();
+                }
+            });
+
+            // 游戏按钮点击事件（调整顺序）
+            document.getElementById('spelling-btn').addEventListener('click', () => {
+                currentGameType = 'spelling';
+                startSpellingGame();
+            });
+            document.getElementById('eng-to-ch-btn').addEventListener('click', () => {
+                currentGameType = 'engToCh';
+                startEngToChGame();
+            });
+            document.getElementById('ch-to-eng-btn').addEventListener('click', () => {
+                currentGameType = 'chToEng';
+                startChToEngGame();
+            });
+            document.getElementById('hangman-btn').addEventListener('click', () => {
+                currentGameType = 'hangman';
+                startHangmanGame();
+            });
+
+            // 重新开始按钮事件
+            modalRestart.addEventListener('click', restartCurrentGame);
+            
+            // 监听回车键操作弹窗按钮
+            document.addEventListener('keydown', function(e) {
+                if (resultModal.classList.contains('active') && e.key === 'Enter') {
+                    restartCurrentGame();
+                }
+            });
+
+            // 创建键盘
+            createKeyboard('spelling-keyboard', handleSpellingKeyPress);
+            createKeyboard('hangman-keyboard', handleHangmanKeyPress);
+
+            // 监听物理键盘输入（拼写+吊小人游戏）
+            document.addEventListener('keydown', handlePhysicalKeyboard);
+        }
+
+        // 重置游戏按钮状态
+        function resetGameButtons() {
+            gameButtons.forEach(btn => btn.disabled = true);
+        }
+
+        // 启用游戏按钮
+        function enableGameButtons() {
+            gameButtons.forEach(btn => btn.disabled = false);
+        }
+
+        // 隐藏所有游戏容器
+        function hideAllGames() {
+            spellingGame.classList.remove('game-active');
+            engToChGame.classList.remove('game-active');
+            chToEngGame.classList.remove('game-active');
+            hangmanGame.classList.remove('game-active');
+            resultModal.classList.remove('active');
+            // 重置小人样式和中文提示
+            hangmanFigure.classList.remove('hangman-success', 'hangman-fail');
+            hangmanHint.style.display = 'none';
+        }
+
+        // 创建字母键盘
+        function createKeyboard(containerId, callback) {
+            const container = document.getElementById(containerId);
+            const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+            
+            container.innerHTML = '';
+            letters.forEach(letter => {
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.textContent = letter;
+                key.dataset.key = letter;
+                key.addEventListener('click', () => callback(letter, key));
+                container.appendChild(key);
+            });
+        }
+
+        // 物理键盘输入处理（拼写+吊小人游戏）
+        function handlePhysicalKeyboard(e) {
+            // 只处理字母键
+            if (!/^[a-z]$/i.test(e.key)) return;
+            
+            const key = e.key.toLowerCase();
+            // 拼写游戏
+            if (currentGameType === 'spelling' && spellingGame.classList.contains('game-active')) {
+                const keyElement = document.querySelector(`#spelling-keyboard .key[data-key="${key}"]`);
+                if (keyElement && !keyElement.classList.contains('disabled')) {
+                    handleSpellingKeyPress(key, keyElement);
+                }
+            }
+            // 吊小人游戏
+            else if (currentGameType === 'hangman' && hangmanGame.classList.contains('game-active')) {
+                const keyElement = document.querySelector(`#hangman-keyboard .key[data-key="${key}"]`);
+                if (keyElement && !keyElement.classList.contains('disabled')) {
+                    handleHangmanKeyPress(key, keyElement);
+                }
+            }
+        }
+
+        // 显示结果弹窗（支持分行）
+        function showResultModal(isSuccess, title, descLines) {
+            modalTitle.textContent = title;
+            modalTitle.className = isSuccess ? 'modal-title success-title' : 'modal-title fail-title';
+            // 拼接分行内容
+            modalDesc.innerHTML = descLines.join('<br>');
+            resultModal.classList.add('active');
+        }
+
+        // 重新开始当前游戏
+        function restartCurrentGame() {
+            resultModal.classList.remove('active');
+            switch(currentGameType) {
+                case 'spelling': startSpellingGame(); break;
+                case 'engToCh': startEngToChGame(); break;
+                case 'chToEng': startChToEngGame(); break;
+                case 'hangman': startHangmanGame(); break;
+            }
+        }
+
+        // 过滤特殊字符（仅保留字母，特殊符号直接显示）
+        function filterSpecialChars(word) {
+            const display = [];
+            for (let char of word) {
+                // 字母显示下划线，特殊符号直接显示
+                if (/[a-z]/i.test(char)) {
+                    display.push('_');
+                } else {
+                    display.push(char);
+                }
+            }
+            return display;
+        }
+
+        // ------------------------------
+        // 拼写单词游戏逻辑（乱序逐一出现当前List全部单词）
+        // ------------------------------
+        let spellingWordList = []; // 乱序后的当前List单词列表
+        let spellingCurrentIndex = 0; // 当前单词索引
+        let spellingWord = "";
+        let spellingDisplay = [];
+        let spellingGuessed = new Set();
+
+        function startSpellingGame() {
+            if (!currentVocab.length) {
+                alert('请先选择有效的天数和List！');
+                return;
+            }
+            
+            hideAllGames();
+            spellingGame.classList.add('game-active');
+            
+            // 重置游戏状态
+            spellingGuessed.clear();
+            // 打乱当前List单词顺序，生成不重复的练习列表
+            spellingWordList = [...currentVocab].sort(() => Math.random() - 0.5);
+            spellingCurrentIndex = 0;
+            
+            // 更新进度显示
+            document.getElementById('spelling-progress-text').textContent = `0/${spellingWordList.length}`;
+            document.getElementById('spelling-progress').style.width = '0%';
+            document.getElementById('spelling-message').textContent = "点击字母或使用物理键盘拼写单词（覆盖当前List所有词汇）！";
+            document.getElementById('spelling-message').className = 'hint-text normal-hint';
+            
+            // 重置键盘
+            document.querySelectorAll('#spelling-keyboard .key').forEach(key => {
+                key.classList.remove('correct', 'incorrect', 'disabled');
+            });
+            
+            // 加载第一个单词
+            loadNextSpellingWord();
+        }
+
+        // 加载下一个拼写单词
+        function loadNextSpellingWord() {
+            if (spellingCurrentIndex >= spellingWordList.length) {
+                // 完成当前List所有单词
+                showResultModal(true, '🎉 拼写练习完成！ 🎉', [
+                    `恭喜你完成当前List所有单词拼写！`,
+                    `总词汇数：${spellingWordList.length}`,
+                    `请点击重新开始按钮进行新一轮练习`
+                ]);
+                return;
+            }
+            
+            // 重置键盘和猜测记录
+            document.querySelectorAll('#spelling-keyboard .key').forEach(key => {
+                key.classList.remove('correct', 'incorrect', 'disabled');
+            });
+            spellingGuessed.clear();
+            
+            // 获取当前单词
+            const currentWordData = spellingWordList[spellingCurrentIndex];
+            spellingWord = currentWordData.en.toLowerCase();
+            
+            // 显示中文提示
+            document.getElementById('spelling-hint').textContent = `请拼写 (${spellingCurrentIndex + 1}/${spellingWordList.length}): ${currentWordData.ch}`;
+            
+            // 过滤特殊字符，仅字母需要拼写
+            spellingDisplay = filterSpecialChars(spellingWord);
+            updateSpellingDisplay();
+            
+            document.getElementById('spelling-message').textContent = "请拼写当前单词";
+            document.getElementById('spelling-message').className = 'hint-text normal-hint';
+        }
+
+        function updateSpellingDisplay() {
+            document.getElementById('spelling-word').textContent = spellingDisplay.join('');
+        }
+
+        function handleSpellingKeyPress(letter, keyElement) {
+            if (spellingGuessed.has(letter)) {
+                return;
+            }
+            
+            spellingGuessed.add(letter);
+            keyElement.classList.add('disabled');
+            
+            if (spellingWord.includes(letter)) {
+                keyElement.classList.add('correct');
+                // 填充所有对应字母位置
+                for (let i = 0; i < spellingWord.length; i++) {
+                    if (spellingWord[i] === letter) {
+                        spellingDisplay[i] = letter;
+                    }
+                }
+                updateSpellingDisplay();
+                
+                // 拼写完成，加载下一个单词
+                if (!spellingDisplay.includes('_')) {
+                    spellingCurrentIndex++;
+                    // 更新进度
+                    const progress = (spellingCurrentIndex / spellingWordList.length) * 100;
+                    document.getElementById('spelling-progress-text').textContent = `${spellingCurrentIndex}/${spellingWordList.length}`;
+                    document.getElementById('spelling-progress').style.width = `${progress}%`;
+                    
+                    document.getElementById('spelling-message').textContent = '拼写正确！加载下一个单词...';
+                    document.getElementById('spelling-message').className = 'hint-text success-hint';
+                    
+                    setTimeout(loadNextSpellingWord, 1000);
+                }
+            } else {
+                keyElement.classList.add('incorrect');
+                document.getElementById('spelling-message').textContent = '字母错误，再试试！';
+                document.getElementById('spelling-message').className = 'hint-text error-hint';
+            }
+        }
+
+        // ------------------------------
+        // 英译中游戏逻辑（乱序逐一出现当前List全部单词，选项带A/B/C序号）
+        // ------------------------------
+        let engToChWordList = []; // 乱序后的当前List单词列表
+        let engToChCurrentIndex = 0; // 当前单词索引
+        let engToChLives = 3;
+        let engToChCorrectCount = 0; // 正确题数
+        let currentEngToChWord = null;
+
+        function startEngToChGame() {
+            if (!currentVocab.length) {
+                alert('请先选择有效的天数和List！');
+                return;
+            }
+            
+            hideAllGames();
+            engToChGame.classList.add('game-active');
+            
+            // 重置游戏状态
+            engToChLives = 3;
+            engToChCorrectCount = 0;
+            // 打乱当前List单词顺序，生成不重复的练习列表
+            engToChWordList = [...currentVocab].sort(() => Math.random() - 0.5);
+            engToChCurrentIndex = 0;
+            
+            // 更新进度显示
+            document.getElementById('eng-to-ch-progress-text').textContent = `0/${engToChWordList.length}`;
+            document.getElementById('eng-to-ch-progress').style.width = '0%';
+            document.getElementById('eng-to-ch-feedback').textContent = "选择正确的中文释义（覆盖当前List所有词汇），3条生命值！";
+            document.getElementById('eng-to-ch-feedback').className = 'hint-text normal-hint';
+            
+            // 重置生命值显示
+            document.querySelectorAll('#eng-to-ch-game .heart').forEach(heart => {
+                heart.className = 'heart';
+                heart.textContent = '❤️';
+            });
+            
+            // 加载第一个单词
+            loadNextEngToChWord();
+        }
+
+        // 加载下一个英译中单词
+        function loadNextEngToChWord() {
+            if (engToChCurrentIndex >= engToChWordList.length) {
+                // 完成当前List所有单词
+                showResultModal(true, '🎉 英译中练习完成！ 🎉', [
+                    `恭喜你完成当前List所有单词练习！`,
+                    `总词汇数：${engToChWordList.length}`,
+                    `正确题数：${engToChCorrectCount}，正确率：${Math.round((engToChCorrectCount / engToChWordList.length) * 100)}%`
+                ]);
+                return;
+            }
+            
+            if (engToChLives <= 0) {
+                // 生命值耗尽，结束练习
+                showResultModal(false, '❌ 游戏结束！ ❌', [
+                    `生命值耗尽！未完成当前List所有单词`,
+                    `已练习：${engToChCurrentIndex} 个单词`,
+                    `正确题数：${engToChCorrectCount}`
+                ]);
+                return;
+            }
+            
+            // 获取当前单词
+            currentEngToChWord = engToChWordList[engToChCurrentIndex];
+            document.getElementById('eng-to-ch-question').textContent = currentEngToChWord.en;
+            document.getElementById('eng-to-ch-feedback').textContent = `请选择正确释义 (${engToChCurrentIndex + 1}/${engToChWordList.length})`;
+            document.getElementById('eng-to-ch-feedback').className = 'hint-text normal-hint';
+            
+            // 生成选项（带A/B/C序号）
+            const options = [currentEngToChWord.ch];
+            while (options.length < 3) {
+                const randomDistractor = currentVocab[Math.floor(Math.random() * currentVocab.length)];
+                if (randomDistractor.ch !== currentEngToChWord.ch && !options.includes(randomDistractor.ch)) {
+                    options.push(randomDistractor.ch);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+            
+            // 渲染选项（带A/B/C序号）
+            const optionsContainer = document.getElementById('eng-to-eng-options');
+            optionsContainer.innerHTML = '';
+            const indexes = ['A', 'B', 'C']; // 选项序号
+            options.forEach((option, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.dataset.index = indexes[idx]; // 设置序号属性
+                btn.dataset.correct = option === currentEngToChWord.ch;
+                btn.addEventListener('click', () => checkEngToChOption(btn));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkEngToChOption(btn) {
+            const isCorrect = btn.dataset.correct === 'true';
+            const allOptions = document.querySelectorAll('#eng-to-eng-options .option-btn');
+            allOptions.forEach(opt => opt.disabled = true);
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                document.getElementById('eng-to-ch-feedback').textContent = '回答正确！';
+                document.getElementById('eng-to-ch-feedback').className = 'hint-text success-hint';
+                engToChCorrectCount++;
+            } else {
+                btn.classList.add('incorrect');
+                allOptions.forEach(opt => {
+                    if (opt.dataset.correct === 'true') opt.classList.add('correct');
+                });
+                // 错误提示（加大字号+延长显示）
+                document.getElementById('eng-to-ch-feedback').textContent = 
+                    `❌ 回答错误！正确答案是：${currentEngToChWord.ch}`;
+                document.getElementById('eng-to-ch-feedback').className = 'hint-text error-hint';
+                engToChLives--;
+                
+                // 更新生命值
+                const heartElements = document.querySelectorAll('#eng-to-ch-game .heart');
+                if (heartElements[engToChLives]) {
+                    heartElements[engToChLives].className = 'heart grey';
+                    heartElements[engToChLives].textContent = '💀';
+                }
+            }
+            
+            // 更新进度
+            engToChCurrentIndex++;
+            const progress = (engToChCurrentIndex / engToChWordList.length) * 100;
+            document.getElementById('eng-to-ch-progress-text').textContent = `${engToChCurrentIndex}/${engToChWordList.length}`;
+            document.getElementById('eng-to-ch-progress').style.width = `${progress}%`;
+            
+            // 延迟加载下一题
+            setTimeout(loadNextEngToChWord, 2000);
+        }
+
+        // ------------------------------
+        // 中译英游戏逻辑（乱序逐一出现当前List全部单词，选项带A/B/C序号）
+        // ------------------------------
+        let chToEngWordList = []; // 乱序后的当前List单词列表
+        let chToEngCurrentIndex = 0; // 当前单词索引
+        let chToEngLives = 3;
+        let chToEngCorrectCount = 0; // 正确题数
+        let currentChToEngWord = null;
+
+        function startChToEngGame() {
+            if (!currentVocab.length) {
+                alert('请先选择有效的天数和List！');
+                return;
+            }
+            
+            hideAllGames();
+            chToEngGame.classList.add('game-active');
+            
+            // 重置游戏状态
+            chToEngLives = 3;
+            chToEngCorrectCount = 0;
+            // 打乱当前List单词顺序，生成不重复的练习列表
+            chToEngWordList = [...currentVocab].sort(() => Math.random() - 0.5);
+            chToEngCurrentIndex = 0;
+            
+            // 更新进度显示
+            document.getElementById('ch-to-eng-progress-text').textContent = `0/${chToEngWordList.length}`;
+            document.getElementById('ch-to-eng-progress').style.width = '0%';
+            document.getElementById('ch-to-eng-feedback').textContent = "选择正确的英文单词（覆盖当前List所有词汇），3条生命值！";
+            document.getElementById('ch-to-eng-feedback').className = 'hint-text normal-hint';
+            
+            // 重置生命值显示
+            document.querySelectorAll('#ch-to-eng-game .heart').forEach(heart => {
+                heart.className = 'heart';
+                heart.textContent = '❤️';
+            });
+            
+            // 加载第一个单词
+            loadNextChToEngWord();
+        }
+
+        // 加载下一个中译英单词
+        function loadNextChToEngWord() {
+            if (chToEngCurrentIndex >= chToEngWordList.length) {
+                // 完成当前List所有单词
+                showResultModal(true, '🎉 中译英练习完成！ 🎉', [
+                    `恭喜你完成当前List所有单词练习！`,
+                    `总词汇数：${chToEngWordList.length}`,
+                    `正确题数：${chToEngCorrectCount}，正确率：${Math.round((chToEngCorrectCount / chToEngWordList.length) * 100)}%`
+                ]);
+                return;
+            }
+            
+            if (chToEngLives <= 0) {
+                // 生命值耗尽，结束练习
+                showResultModal(false, '❌ 游戏结束！ ❌', [
+                    `生命值耗尽！未完成当前List所有单词`,
+                    `已练习：${chToEngCurrentIndex} 个单词`,
+                    `正确题数：${chToEngCorrectCount}`
+                ]);
+                return;
+            }
+            
+            // 获取当前单词
+            currentChToEngWord = chToEngWordList[chToEngCurrentIndex];
+            document.getElementById('ch-to-eng-question').textContent = currentChToEngWord.ch;
+            document.getElementById('ch-to-eng-feedback').textContent = `请选择正确单词 (${chToEngCurrentIndex + 1}/${chToEngWordList.length})`;
+            document.getElementById('ch-to-eng-feedback').className = 'hint-text normal-hint';
+            
+            // 生成选项（带A/B/C序号）
+            const options = [currentChToEngWord.en];
+            while (options.length < 3) {
+                const randomDistractor = currentVocab[Math.floor(Math.random() * currentVocab.length)];
+                if (randomDistractor.en !== currentChToEngWord.en && !options.includes(randomDistractor.en)) {
+                    options.push(randomDistractor.en);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+            
+            // 渲染选项（带A/B/C序号）
+            const optionsContainer = document.getElementById('ch-to-eng-options');
+            optionsContainer.innerHTML = '';
+            const indexes = ['A', 'B', 'C']; // 选项序号
+            options.forEach((option, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.dataset.index = indexes[idx]; // 设置序号属性
+                btn.dataset.correct = option === currentChToEngWord.en;
+                btn.addEventListener('click', () => checkChToEngOption(btn));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkChToEngOption(btn) {
+            const isCorrect = btn.dataset.correct === 'true';
+            const allOptions = document.querySelectorAll('#ch-to-eng-options .option-btn');
+            allOptions.forEach(opt => opt.disabled = true);
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                document.getElementById('ch-to-eng-feedback').textContent = '回答正确！';
+                document.getElementById('ch-to-eng-feedback').className = 'hint-text success-hint';
+                chToEngCorrectCount++;
+            } else {
+                btn.classList.add('incorrect');
+                allOptions.forEach(opt => {
+                    if (opt.dataset.correct === 'true') opt.classList.add('correct');
+                });
+                // 错误提示（加大字号+延长显示）
+                document.getElementById('ch-to-eng-feedback').textContent = 
+                    `❌ 回答错误！正确答案是：${currentChToEngWord.en}`;
+                document.getElementById('ch-to-eng-feedback').className = 'hint-text error-hint';
+                chToEngLives--;
+                
+                // 更新生命值
+                const heartElements = document.querySelectorAll('#ch-to-eng-game .heart');
+                if (heartElements[chToEngLives]) {
+                    heartElements[chToEngLives].className = 'heart grey';
+                    heartElements[chToEngLives].textContent = '💀';
+                }
+            }
+            
+            // 更新进度
+            chToEngCurrentIndex++;
+            const progress = (chToEngCurrentIndex / chToEngWordList.length) * 100;
+            document.getElementById('ch-to-eng-progress-text').textContent = `${chToEngCurrentIndex}/${chToEngWordList.length}`;
+            document.getElementById('ch-to-eng-progress').style.width = `${progress}%`;
+            
+            // 延迟加载下一题
+            setTimeout(loadNextChToEngWord, 2000);
+        }
+
+        // ------------------------------
+        // 吊小人游戏逻辑（10次机会，错误5次显示中文提示）
+        // ------------------------------
+        let hangmanDisplay = [];
+        let hangmanRemaining = 10; // 10次机会
+        let hangmanGuessed = new Set();
+        let hangmanWord = "";
+        let hangmanHintShown = false; // 中文提示是否已显示
+
+        function startHangmanGame() {
+            if (!currentVocab.length) {
+                alert('请先选择有效的天数和List！');
+                return;
+            }
+            
+            hideAllGames();
+            hangmanGame.classList.add('game-active');
+            
+            // 重置游戏状态
+            hangmanRemaining = 10;
+            hangmanGuessed.clear();
+            hangmanHintShown = false; // 重置提示状态
+            document.getElementById('hangman-remaining').textContent = hangmanRemaining;
+            document.getElementById('hangman-message').textContent = "猜单词，10次失误机会！";
+            document.getElementById('hangman-message').className = 'hint-text normal-hint';
+            hangmanHint.style.display = 'none'; // 隐藏中文提示
+            
+            // 重置小人图形和样式
+            document.querySelectorAll('.hangman-part').forEach(part => {
+                part.style.display = 'none';
+            });
+            hangmanFigure.classList.remove('hangman-success', 'hangman-fail');
+            
+            // 重置键盘
+            document.querySelectorAll('#hangman-keyboard .key').forEach(key => {
+                key.classList.remove('correct', 'incorrect', 'disabled');
+            });
+            
+            // 随机选择当前List中的一个单词
+            const randomWord = currentVocab[Math.floor(Math.random() * currentVocab.length)];
+            hangmanWord = randomWord.en.toLowerCase();
+            const wordCh = randomWord.ch; // 存储中文释义，用于提示
+            
+            // 过滤特殊字符，仅字母需要猜测
+            hangmanDisplay = filterSpecialChars(hangmanWord);
+            updateHangmanDisplay();
+            
+            // 存储中文释义到元素属性，方便后续提示
+            hangmanHint.dataset.wordCh = wordCh;
+        }
+
+        function updateHangmanDisplay() {
+            document.getElementById('hangman-word').textContent = hangmanDisplay.join('');
+        }
+
+        function handleHangmanKeyPress(letter, keyElement) {
+            if (hangmanGuessed.has(letter) || hangmanRemaining === 0 || !hangmanDisplay.includes('_')) return;
+            
+            hangmanGuessed.add(letter);
+            keyElement.classList.add('disabled');
+            
+            if (hangmanWord.includes(letter)) {
+                keyElement.classList.add('correct');
+                // 填充所有对应字母位置
+                for (let i = 0; i < hangmanWord.length; i++) {
+                    if (hangmanWord[i] === letter) {
+                        hangmanDisplay[i] = letter;
+                    }
+                }
+                updateHangmanDisplay();
+                
+                // 解救成功
+                if (!hangmanDisplay.includes('_')) {
+                    const wordData = currentVocab.find(item => item.en.toLowerCase() === hangmanWord);
+                    document.getElementById('hangman-message').textContent = 
+                        `恭喜！猜对了: ${hangmanWord} (${wordData.ch})`;
+                    document.getElementById('hangman-message').className = 'hint-text success-hint';
+                    // 小人变绿色
+                    hangmanFigure.classList.add('hangman-success');
+                    // 分行显示结果
+                    showResultModal(true, '🎉 解救成功！ 🎉', [
+                        '恭喜你成功猜出单词！',
+                        `英文：${hangmanWord}`,
+                        `中文：${wordData.ch}`
+                    ]);
+                }
+            } else {
+                keyElement.classList.add('incorrect');
+                hangmanRemaining--;
+                document.getElementById('hangman-remaining').textContent = hangmanRemaining;
+                
+                // 错误5次时显示中文提示（仅显示一次）
+                if (hangmanRemaining === 5 && !hangmanHintShown) {
+                    const wordCh = hangmanHint.dataset.wordCh;
+                    hangmanHint.textContent = `💡 中文提示：${wordCh}`;
+                    hangmanHint.style.display = 'block';
+                    hangmanHintShown = true;
+                }
+                
+                // 显示小人身体部位（10个部位对应10次失误）
+                const parts = ['stand', 'beam', 'rope', 'head', 'body', 'arm-left', 'arm-right', 'leg-left', 'leg-right', 'face'];
+                const partIndex = 10 - hangmanRemaining;
+                if (parts[partIndex]) {
+                    const part = document.querySelector(`.${parts[partIndex]}`);
+                    if (part) part.style.display = 'block';
+                }
+                
+                // 解救失败
+                if (hangmanRemaining === 0) {
+                    const wordData = currentVocab.find(item => item.en.toLowerCase() === hangmanWord);
+                    document.getElementById('hangman-message').textContent = 
+                        `游戏结束！正确答案: ${hangmanWord} (${wordData.ch})`;
+                    document.getElementById('hangman-message').className = 'hint-text error-hint';
+                    // 小人变红色+倒地
+                    hangmanFigure.classList.add('hangman-fail');
+                    // 分行显示结果
+                    showResultModal(false, '❌ 解救失败！ ❌', [
+                        '很遗憾未能猜出单词',
+                        `正确英文：${hangmanWord}`,
+                        `中文释义：${wordData.ch}`
+                    ]);
+                }
+            }
+        }
+
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>
